@@ -1329,7 +1329,7 @@ class MainWindow(QMainWindow, WindowMixin):
         self.targetDirPath = ustr(QFileDialog.getExistingDirectory(self,
                                                               '%s - Open Directory' % __appname__, defaultOpenDirPath,
                                                               QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks))
-        self.importDirImages(targetDirPath)
+        self.importDirImages(self.targetDirPath)
 
     def importDirImages(self, dirpath):
         if not self.mayContinue() or not dirpath:
