@@ -222,6 +222,11 @@ class MainWindow(QMainWindow, WindowMixin):
         self.dockFeatures = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable
         self.dock.setFeatures(self.dock.features() ^ self.dockFeatures)
 
+
+        #******************************************************************
+        # A partir de aquí, empieza código a modificar.
+        # ******************************************************************
+
         #-----------------------------------------------------------------
         # Jonathan. A continuación se definen las acciones que van a incluir
         # los distintos menús. Yo aquí no tocaría nada, sino que añadiría al
@@ -407,6 +412,10 @@ class MainWindow(QMainWindow, WindowMixin):
         # Auto saving : Enable auto saving if pressing next
         self.autoSaving = QAction(getStr('autoSaveMode'), self)
         self.autoSaving.setCheckable(True)
+
+        # Jónathan. Al activar el autosave mode, al abrir un directorio te pide que
+        # indiques el directorio donde se van a guardar las imágenes. Se podría cambiar para
+        # que fuera el mismo donde están dichas imágenes. 
         self.autoSaving.setChecked(settings.get(SETTING_AUTO_SAVE, True))
         # Sync single class mode from PR#106
         self.singleClassMode = QAction(getStr('singleClsMode'), self)
@@ -424,6 +433,7 @@ class MainWindow(QMainWindow, WindowMixin):
         addActions(self.menus.file,
                    (open, opendir, changeSavedir, openAnnotation, self.menus.recentFiles, save, save_format, saveAs, close, resetAll, quit))
         addActions(self.menus.help, (help, showInfo))
+        # Jónathan. Del menú view he quitado lo de advanced mode, para que no se pueda cambiar.
         addActions(self.menus.view, (
             self.autoSaving,
             self.singleClassMode,
@@ -441,23 +451,29 @@ class MainWindow(QMainWindow, WindowMixin):
             action('&Copy here', self.copyShape),
             action('&Move here', self.moveShape)))
 
+        # -----------------------------------------------------------------
+        # Jónathan. Se define el toolbar.
+        # -----------------------------------------------------------------
         self.tools = self.toolbar('Tools')
+        # Jónathan. Las acciones que se van añadir al toolbar son las que aparecen a continuación.
+        # Dependiendo del modo se muestran unas u otras, pero en nuestro caso solo va a haber modo
+        # beginner.
         self.actions.beginner = (
-            open, opendir, changeSavedir, openNextImg, openPrevImg, verify, save, save_format, None, create, createRegion, copy, delete, None,
-            zoomIn, zoom, zoomOut, fitWindow, fitWidth)
+            open, opendir, changeSavedir, openNextImg, openPrevImg, verify, save, None, create, createRegion, delete)
 
-        self.actions.advanced = (
-            open, opendir, changeSavedir, openNextImg, openPrevImg, save, save_format, None,
-            createMode, editMode, None,
-            hideAll, showAll)
+        # Como solo hay modo beginner esto se puede quedar como una lista vacía.
+        self.actions.advanced = ()
 
-        self.statusBar().showMessage('%s started.' % __appname__)
-        self.statusBar().show()
+        # ******************************************************************
+        # Aquí termina código a modificar. Salvo luego las nuevas funciones
+        # que se definan.
+        # ******************************************************************
 
-        # Application state.
         # -----------------------------------------------------------------
         # Jónathan. Más parámetros de cofiguración. No hace falta tocarlos.
         # -----------------------------------------------------------------
+        self.statusBar().showMessage('%s started.' % __appname__)
+        self.statusBar().show()
         self.image = QImage()
         self.filePath = ustr(defaultFilename)
         self.recentFiles = []
