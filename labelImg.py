@@ -360,7 +360,12 @@ class MainWindow(QMainWindow, WindowMixin):
         self.drawSquaresOption.setChecked(settings.get(SETTING_DRAW_SQUARE, False))
         self.drawSquaresOption.triggered.connect(self.toogleDrawSquare)
 
-        # Store actions for further handling.
+        #-----------------------------------------------------------------
+        # Jonathan. Todas las acciones que se han definido deben añadirse
+        # al siguiente diccinoario para poder ser utilizadas luego, yo
+        # he añadido lo de createRegion.
+        #-----------------------------------------------------------------
+
         self.actions = struct(save=save, save_format=save_format, saveAs=saveAs, open=open, close=close, resetAll = resetAll,
                               lineColor=color1, create=create, createRegion=createRegion,delete=delete, edit=edit, copy=copy,
                               createMode=createMode, editMode=editMode, advancedMode=advancedMode,
@@ -379,6 +384,10 @@ class MainWindow(QMainWindow, WindowMixin):
                               onLoadActive=(
                                   close, create, createMode, editMode),
                               onShapesPresent=(saveAs, hideAll, showAll))
+
+        #-----------------------------------------------------------------
+        # Jonathan. Aquí se va a definir cada uno de los menús.
+        #-----------------------------------------------------------------
 
         self.menus = struct(
             file=self.menu('&File'),
