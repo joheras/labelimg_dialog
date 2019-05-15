@@ -60,13 +60,14 @@ class WindowMixin(object):
     def toolbar(self, title, actions=None):
         toolbar = ToolBar(title)
         toolbar.setObjectName(u'%sToolBar' % title)
-        # toolbar.setOrientation(Qt.Vertical)
+        toolbar.setOrientation(Qt.Vertical)
         toolbar.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
         if actions:
             addActions(toolbar, actions)
         self.addToolBar(Qt.LeftToolBarArea, toolbar)
         return toolbar
 
+    
 
 class MainWindow(QMainWindow, WindowMixin):
     FIT_WINDOW, FIT_WIDTH, MANUAL_ZOOM = list(range(3))
@@ -75,6 +76,8 @@ class MainWindow(QMainWindow, WindowMixin):
         super(MainWindow, self).__init__()
         self.setWindowTitle(__appname__)
 
+        # Jonathan. Parámetros de configuración
+        #-----------------------------------------------------------------
         # Load setting in the main thread
         self.settings = Settings()
         self.settings.load()
@@ -102,9 +105,11 @@ class MainWindow(QMainWindow, WindowMixin):
         self._beginner = True
         self.screencastViewer = self.getAvailableScreencastViewer()
         self.screencast = "https://youtu.be/p0nR2YsCY_U"
-
+        
         # Load predefined classes to the list
         self.loadPredefinedClasses(defaultPrefdefClassFile)
+        #-----------------------------------------------------------------
+
 
         # Main widgets and related state.
         self.labelDialog = LabelDialog(parent=self, listItem=self.labelHist)
@@ -113,10 +118,20 @@ class MainWindow(QMainWindow, WindowMixin):
         self.shapesToItems = {}
         self.prevLabelText = ''
 
+        #-----------------------------------------------------------------
+        # Jonathan. Comienza creando el elemento que contiene la lista de  
+        # las anotaciones (lo que aparece arriba a la derecha)
+        #-----------------------------------------------------------------
+        # Crea primero un layout donde irá añadiendo cosas. 
         listLayout = QVBoxLayout()
         listLayout.setContentsMargins(0, 0, 0, 0)
 
-        # Create a widget for using default label
+        # De aquí hay muchas cosas que creo que se pueden eliminar. 
+        # Crea un checkbox para la etiqueta por defecto
+        # Si queremos que use siempre la misma hay que modificar el método
+        # newshape para que no pregunte. Como vamos a tener dos etiquetas 
+        # estoma y region, modificaría el método newshape para que tome 
+        # un valor adicional que sea la etiqueta. 
         self.useDefaultLabelCheckbox = QCheckBox(getStr('useDefaultLabel'))
         self.useDefaultLabelCheckbox.setChecked(False)
         self.defaultLabelTextLine = QLineEdit()
@@ -126,17 +141,21 @@ class MainWindow(QMainWindow, WindowMixin):
         useDefaultLabelContainer = QWidget()
         useDefaultLabelContainer.setLayout(useDefaultLabelQHBoxLayout)
 
-        # Create a widget for edit and diffc button
+        # Crea un widget para la opción anotación dificil. Creo que se puede
+        # eliminar. Nada más que hay que ir en cascada, y tener en cuenta cuando
+        # están marcados. 
         self.diffcButton = QCheckBox(getStr('useDifficult'))
         self.diffcButton.setChecked(False)
         self.diffcButton.stateChanged.connect(self.btnstate)
         self.editButton = QToolButton()
         self.editButton.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
-        # Add some of widgets to listLayout
-        listLayout.addWidget(self.editButton)
-        listLayout.addWidget(self.diffcButton)
-        listLayout.addWidget(useDefaultLabelContainer)
+        # Importante. 
+        # Añade los elementos a la lista. Comentando estas tres líneas queda más 
+        # limpio, y solo aparece la lista de anotaciones. 
+        #listLayout.addWidget(self.editButton)
+        #listLayout.addWidget(self.diffcButton)
+        #listLayout.addWidget(useDefaultLabelContainer)
 
         # Create and add a widget for showing current label items
         self.labelList = QListWidget()
@@ -153,6 +172,11 @@ class MainWindow(QMainWindow, WindowMixin):
         self.dock.setObjectName(getStr('labels'))
         self.dock.setWidget(labelListContainer)
 
+        #-----------------------------------------------------------------
+        # Jonathan. A continuación se crea la lista de ficheros. (lo que
+        # aparece abajo a la derecha). Realmente es un layout que tiene una
+        # lista. 
+        #-----------------------------------------------------------------
         self.fileListWidget = QListWidget()
         self.fileListWidget.itemDoubleClicked.connect(self.fileitemDoubleClicked)
         filelistLayout = QVBoxLayout()
@@ -164,6 +188,10 @@ class MainWindow(QMainWindow, WindowMixin):
         self.filedock.setObjectName(getStr('files'))
         self.filedock.setWidget(fileListContainer)
 
+        #-----------------------------------------------------------------
+        # Jonathan. A continuación se crea la zona central que va a ser la
+        # encargada de gestionar la imagen. Esto no hay que tocar nada. 
+        #-----------------------------------------------------------------
         self.zoomWidget = ZoomWidget()
         self.colorDialog = ColorDialog(parent=self)
 
@@ -194,11 +222,14 @@ class MainWindow(QMainWindow, WindowMixin):
         self.dockFeatures = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable
         self.dock.setFeatures(self.dock.features() ^ self.dockFeatures)
 
-        # Actions
+        #-----------------------------------------------------------------
+        # Jonathan. A continuación se definen las acciones que van a incluir
+        # los distintos menús. Yo aquí no tocaría nada, sino que añadiría al
+        # final las nuestras. 
+        #-----------------------------------------------------------------
         action = partial(newAction, self)
         quit = action(getStr('quit'), self.close,
                       'Ctrl+Q', 'quit', getStr('quitApp'))
-
         open = action(getStr('openFile'), self.openFile,
                       'Ctrl+O', 'open', getStr('openFileDetail'))
 
@@ -243,6 +274,11 @@ class MainWindow(QMainWindow, WindowMixin):
 
         create = action(getStr('crtBox'), self.createShape,
                         'w', 'new', getStr('crtBoxDetail'), enabled=False)
+
+        # Importante. Acción añadida para añadir regiones.
+        createRegion = action('Create region', self.createShapeRegion,
+                        'w', 'new', getStr('crtBoxDetail'), enabled=False)
+
         delete = action(getStr('delBox'), self.deleteSelectedShape,
                         'Delete', 'delete', getStr('delBoxDetail'), enabled=False)
         copy = action(getStr('dupBox'), self.copySelectedShape,
@@ -326,7 +362,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
         # Store actions for further handling.
         self.actions = struct(save=save, save_format=save_format, saveAs=saveAs, open=open, close=close, resetAll = resetAll,
-                              lineColor=color1, create=create, delete=delete, edit=edit, copy=copy,
+                              lineColor=color1, create=create, createRegion=createRegion,delete=delete, edit=edit, copy=copy,
                               createMode=createMode, editMode=editMode, advancedMode=advancedMode,
                               shapeLineColor=shapeLineColor, shapeFillColor=shapeFillColor,
                               zoom=zoom, zoomIn=zoomIn, zoomOut=zoomOut, zoomOrg=zoomOrg,
@@ -352,10 +388,17 @@ class MainWindow(QMainWindow, WindowMixin):
             recentFiles=QMenu('Open &Recent'),
             labelList=labelMenu)
 
+
+        #toolbar = ToolBar("prueba")
+        #toolbar.setObjectName(u'ToolBar2')
+        #addActions(toolbar, (save,save_format))
+        #toolbar.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
+        #self.addToolBar(Qt.BottomToolBarArea, toolbar)
+
         # Auto saving : Enable auto saving if pressing next
         self.autoSaving = QAction(getStr('autoSaveMode'), self)
         self.autoSaving.setCheckable(True)
-        self.autoSaving.setChecked(settings.get(SETTING_AUTO_SAVE, False))
+        self.autoSaving.setChecked(settings.get(SETTING_AUTO_SAVE, True))
         # Sync single class mode from PR#106
         self.singleClassMode = QAction(getStr('singleClsMode'), self)
         self.singleClassMode.setShortcut("Ctrl+Shift+S")
@@ -391,7 +434,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
         self.tools = self.toolbar('Tools')
         self.actions.beginner = (
-            open, opendir, changeSavedir, openNextImg, openPrevImg, verify, save, save_format, None, create, copy, delete, None,
+            open, opendir, changeSavedir, openNextImg, openPrevImg, verify, save, save_format, None, create, createRegion, copy, delete, None,
             zoomIn, zoom, zoomOut, fitWindow, fitWidth)
 
         self.actions.advanced = (
@@ -403,6 +446,9 @@ class MainWindow(QMainWindow, WindowMixin):
         self.statusBar().show()
 
         # Application state.
+        # -----------------------------------------------------------------
+        # Jónathan. Más parámetros de cofiguración. No hace falta tocarlos.
+        # -----------------------------------------------------------------
         self.image = QImage()
         self.filePath = ustr(defaultFilename)
         self.recentFiles = []
@@ -552,6 +598,8 @@ class MainWindow(QMainWindow, WindowMixin):
         self.dirty = False
         self.actions.save.setEnabled(False)
         self.actions.create.setEnabled(True)
+        # Jonathan. Hay que habilitar el botón de añadir región cuando se abre una imagen
+        self.actions.createRegion.setEnabled(True)
 
     def toggleActions(self, value=True):
         """Enable/Disable widgets which depend on an opened image."""
@@ -613,10 +661,22 @@ class MainWindow(QMainWindow, WindowMixin):
         msg = u'Name:{0} \nApp Version:{1} \n{2} '.format(__appname__, __version__, sys.version_info)
         QMessageBox.information(self, u'Information', msg)
 
+    # Jónathan. Importante.
+    # Definimos dos funciones, una para añadir regiones y otra para añadir estomas. La diferencia es el texto
+    # por defecto que fija cada una de ellas.
     def createShape(self):
         assert self.beginner()
+        self.text = 'stoma'
         self.canvas.setEditing(False)
         self.actions.create.setEnabled(False)
+        self.actions.createRegion.setEnabled(False)
+
+    def createShapeRegion(self):
+        assert self.beginner()
+        self.text = 'region'
+        self.canvas.setEditing(False)
+        self.actions.create.setEnabled(False)
+        self.actions.createRegion.setEnabled(False)
 
     def toggleDrawingSensitive(self, drawing=True):
         """In the middle of drawing, toggling between modes should be disabled."""
@@ -627,6 +687,7 @@ class MainWindow(QMainWindow, WindowMixin):
             self.canvas.setEditing(True)
             self.canvas.restoreCursor()
             self.actions.create.setEnabled(True)
+            self.actions.createRegion.setEnabled(True)
 
     def toggleDrawMode(self, edit=True):
         self.canvas.setEditing(edit)
@@ -836,27 +897,30 @@ class MainWindow(QMainWindow, WindowMixin):
             self.canvas.setShapeVisible(shape, item.checkState() == Qt.Checked)
 
     # Callback functions:
-    def newShape(self):
+    # Importante. 
+    def newShapeStoma(self,text='stoma'):
         """Pop-up and give focus to the label editor.
 
         position MUST be in global coordinates.
         """
-        if not self.useDefaultLabelCheckbox.isChecked() or not self.defaultLabelTextLine.text():
-            if len(self.labelHist) > 0:
-                self.labelDialog = LabelDialog(
-                    parent=self, listItem=self.labelHist)
+        # Jónathan. 
+        # Estas líneas las he comentado yo.
+        #if not self.useDefaultLabelCheckbox.isChecked() or not self.defaultLabelTextLine.text():
+        #    if len(self.labelHist) > 0:
+        #        self.labelDialog = LabelDialog(
+        #            parent=self, listItem=self.labelHist)
 
             # Sync single class mode from PR#106
-            if self.singleClassMode.isChecked() and self.lastLabel:
-                text = self.lastLabel
-            else:
-                text = self.labelDialog.popUp(text=self.prevLabelText)
-                self.lastLabel = text
-        else:
-            text = self.defaultLabelTextLine.text()
+        #    if self.singleClassMode.isChecked() and self.lastLabel:
+        #        text = self.lastLabel
+        #    else:
+        #        text = self.labelDialog.popUp(text=self.prevLabelText)
+        #        self.lastLabel = text
+        #else:
+        #    text = self.defaultLabelTextLine.text()
 
         # Add Chris
-        self.diffcButton.setChecked(False)
+        #self.diffcButton.setChecked(False)
         if text is not None:
             self.prevLabelText = text
             generate_color = generateColorByText(text)
@@ -865,6 +929,51 @@ class MainWindow(QMainWindow, WindowMixin):
             if self.beginner():  # Switch to edit mode.
                 self.canvas.setEditing(True)
                 self.actions.create.setEnabled(True)
+                self.actions.createRegion.setEnabled(True)
+            else:
+                self.actions.editMode.setEnabled(True)
+            self.setDirty()
+
+            if text not in self.labelHist:
+                self.labelHist.append(text)
+        else:
+            # self.canvas.undoLastLine()
+            self.canvas.resetAllLines()
+
+    #Importante.
+    def newShape(self):
+        """Pop-up and give focus to the label editor.
+
+        position MUST be in global coordinates.
+        """
+        # Jónathan.
+        # Estas líneas las he comentado yo.
+        #if not self.useDefaultLabelCheckbox.isChecked() or not self.defaultLabelTextLine.text():
+        #    if len(self.labelHist) > 0:
+        #        self.labelDialog = LabelDialog(
+        #            parent=self, listItem=self.labelHist)
+
+            # Sync single class mode from PR#106
+        #    if self.singleClassMode.isChecked() and self.lastLabel:
+        #        text = self.lastLabel
+        #    else:
+        #        text = self.labelDialog.popUp(text=self.prevLabelText)
+        #        self.lastLabel = text
+        #else:
+        #    text = self.defaultLabelTextLine.text()
+
+        # Add Chris
+        #self.diffcButton.setChecked(False)
+        text = self.text
+        if text is not None:
+            self.prevLabelText = text
+            generate_color = generateColorByText(text)
+            shape = self.canvas.setLastLabel(text, generate_color, generate_color)
+            self.addLabel(shape)
+            if self.beginner():  # Switch to edit mode.
+                self.canvas.setEditing(True)
+                self.actions.create.setEnabled(True)
+                self.actions.createRegion.setEnabled(True)
             else:
                 self.actions.editMode.setEnabled(True)
             self.setDirty()
