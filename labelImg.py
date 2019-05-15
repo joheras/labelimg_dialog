@@ -400,7 +400,7 @@ class MainWindow(QMainWindow, WindowMixin):
         self.menus = struct(
             file=self.menu('&File'),
             # edit=self.menu('&Edit'),
-            view=self.menu('&View'),
+            #view=self.menu('&View'),
             help=self.menu('&Help'),
             recentFiles=QMenu('Open &Recent'),
             labelList=labelMenu)
@@ -423,6 +423,9 @@ class MainWindow(QMainWindow, WindowMixin):
         # Como hay botones especiales que necesitan checkbox se definen de esta manera.
         # Sino bastaría con añadir las acciones al menú.
         self.autoSaving.setChecked(settings.get(SETTING_AUTO_SAVE, True))
+
+
+
         # Sync single class mode from PR#106
         self.singleClassMode = QAction(getStr('singleClsMode'), self)
         self.singleClassMode.setShortcut("Ctrl+Shift+S")
@@ -436,14 +439,14 @@ class MainWindow(QMainWindow, WindowMixin):
         self.displayLabelOption.setChecked(settings.get(SETTING_PAINT_LABEL, False))
         self.displayLabelOption.triggered.connect(self.togglePaintLabelsOption)
         # Jónathan. Del menú view he quitado lo de advanced mode, para que no se pueda cambiar.
-        addActions(self.menus.view, (
-            self.autoSaving,
-            self.singleClassMode,
-            self.displayLabelOption,
-            labels, advancedMode, None,
-            hideAll, showAll, None,
-            zoomIn, zoomOut, zoomOrg, None,
-            fitWindow, fitWidth))
+        # addActions(self.menus.view, (
+        #     self.autoSaving,
+        #     self.singleClassMode,
+        #     self.displayLabelOption,
+        #     labels, advancedMode, None,
+        #     hideAll, showAll, None,
+        #     zoomIn, zoomOut, zoomOrg, None,
+        #     fitWindow, fitWidth))
 
         # Jónathan. Definición menú file
         addActions(self.menus.file,
@@ -709,7 +712,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
     def createShapeRegion(self):
         assert self.beginner()
-        self.text = 'region'
+        self.text = 'superficie'
         self.canvas.setEditing(False)
         self.actions.create.setEnabled(False)
         self.actions.createRegion.setEnabled(False)
@@ -1323,7 +1326,7 @@ class MainWindow(QMainWindow, WindowMixin):
         else:
             defaultOpenDirPath = os.path.dirname(self.filePath) if self.filePath else '.'
 
-        targetDirPath = ustr(QFileDialog.getExistingDirectory(self,
+        self.targetDirPath = ustr(QFileDialog.getExistingDirectory(self,
                                                               '%s - Open Directory' % __appname__, defaultOpenDirPath,
                                                               QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks))
         self.importDirImages(targetDirPath)
