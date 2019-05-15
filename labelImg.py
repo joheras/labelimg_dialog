@@ -22,6 +22,7 @@ except ImportError:
     # http://stackoverflow.com/questions/21217399/pyqt4-qtcore-qvariant-object-instead-of-a-string
     if sys.version_info.major >= 3:
         import sip
+
         sip.setapi('QVariant', 2)
     from PyQt4.QtGui import *
     from PyQt4.QtCore import *
@@ -49,6 +50,7 @@ from libs.hashableQListWidgetItem import HashableQListWidgetItem
 
 __appname__ = 'labelImg'
 
+
 class WindowMixin(object):
 
     def menu(self, title, actions=None):
@@ -67,7 +69,6 @@ class WindowMixin(object):
         self.addToolBar(Qt.LeftToolBarArea, toolbar)
         return toolbar
 
-    
 
 class MainWindow(QMainWindow, WindowMixin):
     FIT_WINDOW, FIT_WIDTH, MANUAL_ZOOM = list(range(3))
@@ -77,7 +78,7 @@ class MainWindow(QMainWindow, WindowMixin):
         self.setWindowTitle(__appname__)
 
         # Jonathan. Parámetros de configuración
-        #-----------------------------------------------------------------
+        # -----------------------------------------------------------------
         # Load setting in the main thread
         self.settings = Settings()
         self.settings.load()
@@ -105,11 +106,10 @@ class MainWindow(QMainWindow, WindowMixin):
         self._beginner = True
         self.screencastViewer = self.getAvailableScreencastViewer()
         self.screencast = "https://youtu.be/p0nR2YsCY_U"
-        
+
         # Load predefined classes to the list
         self.loadPredefinedClasses(defaultPrefdefClassFile)
-        #-----------------------------------------------------------------
-
+        # -----------------------------------------------------------------
 
         # Main widgets and related state.
         self.labelDialog = LabelDialog(parent=self, listItem=self.labelHist)
@@ -118,20 +118,20 @@ class MainWindow(QMainWindow, WindowMixin):
         self.shapesToItems = {}
         self.prevLabelText = ''
 
-        #-----------------------------------------------------------------
-        # Jonathan. Comienza creando el elemento que contiene la lista de  
+        # -----------------------------------------------------------------
+        # Jonathan. Comienza creando el elemento que contiene la lista de
         # las anotaciones (lo que aparece arriba a la derecha)
-        #-----------------------------------------------------------------
-        # Crea primero un layout donde irá añadiendo cosas. 
+        # -----------------------------------------------------------------
+        # Crea primero un layout donde irá añadiendo cosas.
         listLayout = QVBoxLayout()
         listLayout.setContentsMargins(0, 0, 0, 0)
 
-        # De aquí hay muchas cosas que creo que se pueden eliminar. 
+        # De aquí hay muchas cosas que creo que se pueden eliminar.
         # Crea un checkbox para la etiqueta por defecto
         # Si queremos que use siempre la misma hay que modificar el método
-        # newshape para que no pregunte. Como vamos a tener dos etiquetas 
-        # estoma y region, modificaría el método newshape para que tome 
-        # un valor adicional que sea la etiqueta. 
+        # newshape para que no pregunte. Como vamos a tener dos etiquetas
+        # estoma y region, modificaría el método newshape para que tome
+        # un valor adicional que sea la etiqueta.
         self.useDefaultLabelCheckbox = QCheckBox(getStr('useDefaultLabel'))
         self.useDefaultLabelCheckbox.setChecked(False)
         self.defaultLabelTextLine = QLineEdit()
@@ -143,19 +143,19 @@ class MainWindow(QMainWindow, WindowMixin):
 
         # Crea un widget para la opción anotación dificil. Creo que se puede
         # eliminar. Nada más que hay que ir en cascada, y tener en cuenta cuando
-        # están marcados. 
+        # están marcados.
         self.diffcButton = QCheckBox(getStr('useDifficult'))
         self.diffcButton.setChecked(False)
         self.diffcButton.stateChanged.connect(self.btnstate)
         self.editButton = QToolButton()
         self.editButton.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
-        # Importante. 
-        # Añade los elementos a la lista. Comentando estas tres líneas queda más 
-        # limpio, y solo aparece la lista de anotaciones. 
-        #listLayout.addWidget(self.editButton)
-        #listLayout.addWidget(self.diffcButton)
-        #listLayout.addWidget(useDefaultLabelContainer)
+        # Importante.
+        # Añade los elementos a la lista. Comentando estas tres líneas queda más
+        # limpio, y solo aparece la lista de anotaciones.
+        # listLayout.addWidget(self.editButton)
+        # listLayout.addWidget(self.diffcButton)
+        # listLayout.addWidget(useDefaultLabelContainer)
 
         # Create and add a widget for showing current label items
         self.labelList = QListWidget()
@@ -172,11 +172,11 @@ class MainWindow(QMainWindow, WindowMixin):
         self.dock.setObjectName(getStr('labels'))
         self.dock.setWidget(labelListContainer)
 
-        #-----------------------------------------------------------------
+        # -----------------------------------------------------------------
         # Jonathan. A continuación se crea la lista de ficheros. (lo que
         # aparece abajo a la derecha). Realmente es un layout que tiene una
-        # lista. 
-        #-----------------------------------------------------------------
+        # lista.
+        # -----------------------------------------------------------------
         self.fileListWidget = QListWidget()
         self.fileListWidget.itemDoubleClicked.connect(self.fileitemDoubleClicked)
         filelistLayout = QVBoxLayout()
@@ -188,10 +188,10 @@ class MainWindow(QMainWindow, WindowMixin):
         self.filedock.setObjectName(getStr('files'))
         self.filedock.setWidget(fileListContainer)
 
-        #-----------------------------------------------------------------
+        # -----------------------------------------------------------------
         # Jonathan. A continuación se crea la zona central que va a ser la
-        # encargada de gestionar la imagen. Esto no hay que tocar nada. 
-        #-----------------------------------------------------------------
+        # encargada de gestionar la imagen. Esto no hay que tocar nada.
+        # -----------------------------------------------------------------
         self.zoomWidget = ZoomWidget()
         self.colorDialog = ColorDialog(parent=self)
 
@@ -222,16 +222,15 @@ class MainWindow(QMainWindow, WindowMixin):
         self.dockFeatures = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable
         self.dock.setFeatures(self.dock.features() ^ self.dockFeatures)
 
-
-        #******************************************************************
+        # ******************************************************************
         # A partir de aquí, empieza código a modificar.
         # ******************************************************************
 
-        #-----------------------------------------------------------------
+        # -----------------------------------------------------------------
         # Jonathan. A continuación se definen las acciones que van a incluir
         # los distintos menús. Yo aquí no tocaría nada, sino que añadiría al
-        # final las nuestras. 
-        #-----------------------------------------------------------------
+        # final las nuestras.
+        # -----------------------------------------------------------------
         action = partial(newAction, self)
         quit = action(getStr('quit'), self.close,
                       'Ctrl+Q', 'quit', getStr('quitApp'))
@@ -260,7 +259,7 @@ class MainWindow(QMainWindow, WindowMixin):
                       'Ctrl+S', 'save', getStr('saveDetail'), enabled=False)
 
         save_format = action('&PascalVOC', self.change_format,
-                      'Ctrl+', 'format_voc', getStr('changeSaveFormat'), enabled=True)
+                             'Ctrl+', 'format_voc', getStr('changeSaveFormat'), enabled=True)
 
         saveAs = action(getStr('saveAs'), self.saveFileAs,
                         'Ctrl+Shift+S', 'save-as', getStr('saveAsDetail'), enabled=False)
@@ -282,7 +281,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
         # Importante. Acción añadida para añadir regiones.
         createRegion = action('Create region', self.createShapeRegion,
-                        'w', 'new', getStr('crtBoxDetail'), enabled=False)
+                              'w', 'new', getStr('crtBoxDetail'), enabled=False)
 
         delete = action(getStr('delBox'), self.deleteSelectedShape,
                         'Delete', 'delete', getStr('delBoxDetail'), enabled=False)
@@ -365,14 +364,16 @@ class MainWindow(QMainWindow, WindowMixin):
         self.drawSquaresOption.setChecked(settings.get(SETTING_DRAW_SQUARE, False))
         self.drawSquaresOption.triggered.connect(self.toogleDrawSquare)
 
-        #-----------------------------------------------------------------
+        # -----------------------------------------------------------------
         # Jonathan. Todas las acciones que se han definido deben añadirse
         # al siguiente diccinoario para poder ser utilizadas luego, yo
         # he añadido lo de createRegion.
-        #-----------------------------------------------------------------
+        # -----------------------------------------------------------------
 
-        self.actions = struct(save=save, save_format=save_format, saveAs=saveAs, open=open, close=close, resetAll = resetAll,
-                              lineColor=color1, create=create, createRegion=createRegion,delete=delete, edit=edit, copy=copy,
+        self.actions = struct(save=save, save_format=save_format, saveAs=saveAs, open=open, close=close,
+                              resetAll=resetAll,
+                              lineColor=color1, create=create, createRegion=createRegion, delete=delete, edit=edit,
+                              copy=copy,
                               createMode=createMode, editMode=editMode, advancedMode=advancedMode,
                               shapeLineColor=shapeLineColor, shapeFillColor=shapeFillColor,
                               zoom=zoom, zoomIn=zoomIn, zoomOut=zoomOut, zoomOrg=zoomOrg,
@@ -390,24 +391,25 @@ class MainWindow(QMainWindow, WindowMixin):
                                   close, create, createMode, editMode),
                               onShapesPresent=(saveAs, hideAll, showAll))
 
-        #-----------------------------------------------------------------
+        # -----------------------------------------------------------------
         # Jonathan. Aquí se va a definir cada uno de los menús.
-        #-----------------------------------------------------------------
+        # Me he cargado el menú Edit pero manteniendo la barra de
+        # herramientas lateral
+        # -----------------------------------------------------------------
 
         self.menus = struct(
             file=self.menu('&File'),
-            edit=self.menu('&Edit'),
+            # edit=self.menu('&Edit'),
             view=self.menu('&View'),
             help=self.menu('&Help'),
             recentFiles=QMenu('Open &Recent'),
             labelList=labelMenu)
 
-
-        #toolbar = ToolBar("prueba")
-        #toolbar.setObjectName(u'ToolBar2')
-        #addActions(toolbar, (save,save_format))
-        #toolbar.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
-        #self.addToolBar(Qt.BottomToolBarArea, toolbar)
+        # toolbar = ToolBar("prueba")
+        # toolbar.setObjectName(u'ToolBar2')
+        # addActions(toolbar, (save,save_format))
+        # toolbar.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
+        # self.addToolBar(Qt.BottomToolBarArea, toolbar)
 
         # Auto saving : Enable auto saving if pressing next
         self.autoSaving = QAction(getStr('autoSaveMode'), self)
@@ -415,7 +417,11 @@ class MainWindow(QMainWindow, WindowMixin):
 
         # Jónathan. Al activar el autosave mode, al abrir un directorio te pide que
         # indiques el directorio donde se van a guardar las imágenes. Se podría cambiar para
-        # que fuera el mismo donde están dichas imágenes. 
+        # que fuera el mismo donde están dichas imágenes.
+
+        # Jónathan. Definición menú view
+        # Como hay botones especiales que necesitan checkbox se definen de esta manera.
+        # Sino bastaría con añadir las acciones al menú.
         self.autoSaving.setChecked(settings.get(SETTING_AUTO_SAVE, True))
         # Sync single class mode from PR#106
         self.singleClassMode = QAction(getStr('singleClsMode'), self)
@@ -429,10 +435,6 @@ class MainWindow(QMainWindow, WindowMixin):
         self.displayLabelOption.setCheckable(True)
         self.displayLabelOption.setChecked(settings.get(SETTING_PAINT_LABEL, False))
         self.displayLabelOption.triggered.connect(self.togglePaintLabelsOption)
-
-        addActions(self.menus.file,
-                   (open, opendir, changeSavedir, openAnnotation, self.menus.recentFiles, save, save_format, saveAs, close, resetAll, quit))
-        addActions(self.menus.help, (help, showInfo))
         # Jónathan. Del menú view he quitado lo de advanced mode, para que no se pueda cambiar.
         addActions(self.menus.view, (
             self.autoSaving,
@@ -442,6 +444,13 @@ class MainWindow(QMainWindow, WindowMixin):
             hideAll, showAll, None,
             zoomIn, zoomOut, zoomOrg, None,
             fitWindow, fitWidth))
+
+        # Jónathan. Definición menú file
+        addActions(self.menus.file,
+                   (open, opendir, changeSavedir, openAnnotation, self.menus.recentFiles, save, save_format, saveAs,
+                    close, resetAll, quit))
+        # Jónathan. Definición menú help
+        addActions(self.menus.help, (help, showInfo))
 
         self.menus.file.aboutToShow.connect(self.updateFileMenu)
 
@@ -575,8 +584,10 @@ class MainWindow(QMainWindow, WindowMixin):
             LabelFile.suffix = TXT_EXT
 
     def change_format(self):
-        if self.usingPascalVocFormat: self.set_format(FORMAT_YOLO)
-        elif self.usingYoloFormat: self.set_format(FORMAT_PASCALVOC)
+        if self.usingPascalVocFormat:
+            self.set_format(FORMAT_YOLO)
+        elif self.usingYoloFormat:
+            self.set_format(FORMAT_PASCALVOC)
 
     def noShapes(self):
         return not self.itemsToShapes
@@ -602,10 +613,10 @@ class MainWindow(QMainWindow, WindowMixin):
         addActions(self.tools, tool)
         self.canvas.menus[0].clear()
         addActions(self.canvas.menus[0], menu)
-        self.menus.edit.clear()
-        actions = (self.actions.create,) if self.beginner()\
-            else (self.actions.createMode, self.actions.editMode)
-        addActions(self.menus.edit, actions + self.actions.editMenu)
+        # self.menus.edit.clear()
+        # actions = (self.actions.create,) if self.beginner()\
+        #     else (self.actions.createMode, self.actions.editMode)
+        # addActions(self.menus.edit, actions + self.actions.editMenu)
 
     def setBeginner(self):
         self.tools.clear()
@@ -733,6 +744,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
         def exists(filename):
             return os.path.exists(filename)
+
         menu = self.menus.recentFiles
         menu.clear()
         files = [f for f in self.recentFiles if f !=
@@ -768,15 +780,15 @@ class MainWindow(QMainWindow, WindowMixin):
                 self.loadFile(filename)
 
     # Add chris
-    def btnstate(self, item= None):
+    def btnstate(self, item=None):
         """ Function to handle difficult examples
         Update on each object """
         if not self.canvas.editing():
             return
 
         item = self.currentItem()
-        if not item: # If not selected Item, take the first one
-            item = self.labelList.item(self.labelList.count()-1)
+        if not item:  # If not selected Item, take the first one
+            item = self.labelList.item(self.labelList.count() - 1)
 
         difficult = self.diffcButton.isChecked()
 
@@ -872,8 +884,8 @@ class MainWindow(QMainWindow, WindowMixin):
                         line_color=s.line_color.getRgb(),
                         fill_color=s.fill_color.getRgb(),
                         points=[(p.x(), p.y()) for p in s.points],
-                       # add chris
-                        difficult = s.difficult)
+                        # add chris
+                        difficult=s.difficult)
 
         shapes = [format_shape(shape) for shape in self.canvas.shapes]
         # Can add differrent annotation formats here
@@ -887,7 +899,7 @@ class MainWindow(QMainWindow, WindowMixin):
                 if annotationFilePath[-4:].lower() != ".txt":
                     annotationFilePath += TXT_EXT
                 self.labelFile.saveYoloFormat(annotationFilePath, shapes, self.filePath, self.imageData, self.labelHist,
-                                                   self.lineColor.getRgb(), self.fillColor.getRgb())
+                                              self.lineColor.getRgb(), self.fillColor.getRgb())
             else:
                 self.labelFile.save(annotationFilePath, shapes, self.filePath, self.imageData,
                                     self.lineColor.getRgb(), self.fillColor.getRgb())
@@ -923,29 +935,29 @@ class MainWindow(QMainWindow, WindowMixin):
 
     # Callback functions:
     # Importante. 
-    def newShapeStoma(self,text='stoma'):
+    def newShapeStoma(self, text='stoma'):
         """Pop-up and give focus to the label editor.
 
         position MUST be in global coordinates.
         """
         # Jónathan. 
         # Estas líneas las he comentado yo.
-        #if not self.useDefaultLabelCheckbox.isChecked() or not self.defaultLabelTextLine.text():
+        # if not self.useDefaultLabelCheckbox.isChecked() or not self.defaultLabelTextLine.text():
         #    if len(self.labelHist) > 0:
         #        self.labelDialog = LabelDialog(
         #            parent=self, listItem=self.labelHist)
 
-            # Sync single class mode from PR#106
+        # Sync single class mode from PR#106
         #    if self.singleClassMode.isChecked() and self.lastLabel:
         #        text = self.lastLabel
         #    else:
         #        text = self.labelDialog.popUp(text=self.prevLabelText)
         #        self.lastLabel = text
-        #else:
+        # else:
         #    text = self.defaultLabelTextLine.text()
 
         # Add Chris
-        #self.diffcButton.setChecked(False)
+        # self.diffcButton.setChecked(False)
         if text is not None:
             self.prevLabelText = text
             generate_color = generateColorByText(text)
@@ -965,7 +977,7 @@ class MainWindow(QMainWindow, WindowMixin):
             # self.canvas.undoLastLine()
             self.canvas.resetAllLines()
 
-    #Importante.
+    # Importante.
     def newShape(self):
         """Pop-up and give focus to the label editor.
 
@@ -973,22 +985,22 @@ class MainWindow(QMainWindow, WindowMixin):
         """
         # Jónathan.
         # Estas líneas las he comentado yo.
-        #if not self.useDefaultLabelCheckbox.isChecked() or not self.defaultLabelTextLine.text():
+        # if not self.useDefaultLabelCheckbox.isChecked() or not self.defaultLabelTextLine.text():
         #    if len(self.labelHist) > 0:
         #        self.labelDialog = LabelDialog(
         #            parent=self, listItem=self.labelHist)
 
-            # Sync single class mode from PR#106
+        # Sync single class mode from PR#106
         #    if self.singleClassMode.isChecked() and self.lastLabel:
         #        text = self.lastLabel
         #    else:
         #        text = self.labelDialog.popUp(text=self.prevLabelText)
         #        self.lastLabel = text
-        #else:
+        # else:
         #    text = self.defaultLabelTextLine.text()
 
         # Add Chris
-        #self.diffcButton.setChecked(False)
+        # self.diffcButton.setChecked(False)
         text = self.text
         if text is not None:
             self.prevLabelText = text
@@ -1177,16 +1189,16 @@ class MainWindow(QMainWindow, WindowMixin):
 
             # Default : select last item if there is at least one item
             if self.labelList.count():
-                self.labelList.setCurrentItem(self.labelList.item(self.labelList.count()-1))
-                self.labelList.item(self.labelList.count()-1).setSelected(True)
+                self.labelList.setCurrentItem(self.labelList.item(self.labelList.count() - 1))
+                self.labelList.item(self.labelList.count() - 1).setSelected(True)
 
             self.canvas.setFocus(True)
             return True
         return False
 
     def resizeEvent(self, event):
-        if self.canvas and not self.image.isNull()\
-           and self.zoomMode != self.MANUAL_ZOOM:
+        if self.canvas and not self.image.isNull() \
+                and self.zoomMode != self.MANUAL_ZOOM:
             self.adjustScale()
         super(MainWindow, self).resizeEvent(event)
 
@@ -1274,8 +1286,9 @@ class MainWindow(QMainWindow, WindowMixin):
             path = '.'
 
         dirpath = ustr(QFileDialog.getExistingDirectory(self,
-                                                       '%s - Save annotations to the directory' % __appname__, path,  QFileDialog.ShowDirsOnly
-                                                       | QFileDialog.DontResolveSymlinks))
+                                                        '%s - Save annotations to the directory' % __appname__, path,
+                                                        QFileDialog.ShowDirsOnly
+                                                        | QFileDialog.DontResolveSymlinks))
 
         if dirpath is not None and len(dirpath) > 1:
             self.defaultSaveDir = dirpath
@@ -1290,11 +1303,11 @@ class MainWindow(QMainWindow, WindowMixin):
             self.statusBar().show()
             return
 
-        path = os.path.dirname(ustr(self.filePath))\
+        path = os.path.dirname(ustr(self.filePath)) \
             if self.filePath else '.'
         if self.usingPascalVocFormat:
             filters = "Open Annotation XML file (%s)" % ' '.join(['*.xml'])
-            filename = ustr(QFileDialog.getOpenFileName(self,'%s - Choose a xml file' % __appname__, path, filters))
+            filename = ustr(QFileDialog.getOpenFileName(self, '%s - Choose a xml file' % __appname__, path, filters))
             if filename:
                 if isinstance(filename, (tuple, list)):
                     filename = filename[0]
@@ -1311,8 +1324,8 @@ class MainWindow(QMainWindow, WindowMixin):
             defaultOpenDirPath = os.path.dirname(self.filePath) if self.filePath else '.'
 
         targetDirPath = ustr(QFileDialog.getExistingDirectory(self,
-                                                     '%s - Open Directory' % __appname__, defaultOpenDirPath,
-                                                     QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks))
+                                                              '%s - Open Directory' % __appname__, defaultOpenDirPath,
+                                                              QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks))
         self.importDirImages(targetDirPath)
 
     def importDirImages(self, dirpath):
@@ -1443,7 +1456,7 @@ class MainWindow(QMainWindow, WindowMixin):
         if dlg.exec_():
             fullFilePath = ustr(dlg.selectedFiles()[0])
             if removeExt:
-                return os.path.splitext(fullFilePath)[0] # Return file path without the extension.
+                return os.path.splitext(fullFilePath)[0]  # Return file path without the extension.
             else:
                 return fullFilePath
         return ''
@@ -1558,7 +1571,7 @@ class MainWindow(QMainWindow, WindowMixin):
         self.set_format(FORMAT_YOLO)
         tYoloParseReader = YoloReader(txtPath, self.image)
         shapes = tYoloParseReader.getShapes()
-        print (shapes)
+        print(shapes)
         self.loadLabels(shapes)
         self.canvas.verified = tYoloParseReader.verified
 
@@ -1568,6 +1581,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
     def toogleDrawSquare(self):
         self.canvas.setDrawingShapeToSquare(self.drawSquaresOption.isChecked())
+
 
 def inverted(color):
     return QColor(*[255 - v for v in color.getRgb()])
@@ -1604,6 +1618,7 @@ def main():
     '''construct main app and run it'''
     app, _win = get_main_app(sys.argv)
     return app.exec_()
+
 
 if __name__ == '__main__':
     sys.exit(main())
