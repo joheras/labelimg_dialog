@@ -10,6 +10,8 @@ import subprocess
 
 from functools import partial
 from collections import defaultdict
+# Dialogo
+from midialogo import *
 
 try:
     from PyQt5.QtGui import *
@@ -1415,17 +1417,18 @@ class MainWindow(QMainWindow, WindowMixin):
         if filename:
             self.loadFile(filename)
 
+    # Dialogo. 
     def openFile(self, _value=False):
-        if not self.mayContinue():
-            return
-        path = os.path.dirname(ustr(self.filePath)) if self.filePath else '.'
-        formats = ['*.%s' % fmt.data().decode("ascii").lower() for fmt in QImageReader.supportedImageFormats()]
-        filters = "Image & Label files (%s)" % ' '.join(formats + ['*%s' % LabelFile.suffix])
-        filename = QFileDialog.getOpenFileName(self, '%s - Choose Image or Label file' % __appname__, path, filters)
-        if filename:
-            if isinstance(filename, (tuple, list)):
-                filename = filename[0]
-            self.loadFile(filename)
+        # Con estas cuatro lineas se lanza el dialogo
+        Dialog = QtWidgets.QDialog()
+        ui = Ui_Dialog()
+        ui.setupUi(Dialog)
+        x = Dialog.exec_()
+        # El proceso principal se queda esperando hasta que el dialogo se cierra.
+        # Una vez que el dialogo se ha cerrado podemos entrar a uno de los parámetros
+        # de ese dialogo. 
+        print(ui.res)
+ 
 
     def saveFile(self, _value=False):
         if self.defaultSaveDir is not None and len(ustr(self.defaultSaveDir)):
@@ -1437,7 +1440,7 @@ class MainWindow(QMainWindow, WindowMixin):
         else:
             imgFileDir = os.path.dirname(self.filePath)
             imgFileName = os.path.basename(self.filePath)
-            savedFileName = os.path.splitext(imgFileName)[0]
+            savedFileName = os.path.splitext(igFileName)[0]
             savedPath = os.path.join(imgFileDir, savedFileName)
             self._saveFile(savedPath if self.labelFile
                            else self.saveFileDialog(removeExt=False))
